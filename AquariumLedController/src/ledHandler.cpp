@@ -1,4 +1,4 @@
-#include <handleLed.h>
+#include <ledHandler.h>
 
 void handleLed(LedType type){
     switch(type){
@@ -43,7 +43,19 @@ void ledSetup(void)
   pinMode(ledPin, OUTPUT); // Ustaw pin diody LED jako wyjście
   pinMode(ledCPin, OUTPUT); // Ustaw pin diody LED jako wyjście
   pinMode(ledWPin, OUTPUT); // Ustaw pin diody LED jako wyjście
-  analogWrite(ledPin, 254);
+  analogWrite(ledPin, LOW);
   digitalWrite(ledCPin, LOW);
   digitalWrite(ledWPin, LOW); 
+}
+
+void sliderLed(LedType type, int value){
+    if(type==LedType::allLed){
+        analogWrite(ledPin, value);
+    }
+    else if(type==LedType::LedC){
+        analogWrite(ledCPin, value);
+    }
+    else if(type==LedType::LedW){
+        analogWrite(ledWPin, value);
+    }
 }
