@@ -5,11 +5,15 @@ void handleLed(LedType type){
         case (LedType::ledOn):
         {
             digitalWrite(ledPin, LOW);
+            digitalWrite(ledCPin, HIGH);
+            digitalWrite(ledWPin, HIGH);
             break;
         }
         case (LedType::ledOff):
         {
             digitalWrite(ledPin, HIGH);
+            digitalWrite(ledCPin, LOW);
+            digitalWrite(ledWPin, LOW);
             break;
         }
         case (LedType::ledCOn):
@@ -51,6 +55,8 @@ void ledSetup(void)
 void sliderLed(LedType type, int value){
     if(type==LedType::allLed){
         analogWrite(ledPin, value);
+        analogWrite(ledCPin, value);
+        analogWrite(ledWPin, value);
     }
     else if(type==LedType::LedC){
         analogWrite(ledCPin, value);
