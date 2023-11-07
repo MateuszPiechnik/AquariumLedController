@@ -17,6 +17,7 @@ void handleSliderValueCold(void);
 void handleSliderValueWarm(void);
 void handleTimerOn(void);
 void handleTimerOff(void);
+void handleColorTemperature(void);
 
 WiFiUDP ntpUDP;
 NTPClient timeClient(ntpUDP);
@@ -31,6 +32,7 @@ void setup() {
 
   server.on("/led_control", HTTP_POST, HTTP_handleLed);
   server.on("/set_value", HTTP_GET, handleSliderValue);
+  server.on("/color_temperature", HTTP_GET, handleColorTemperature);
   server.on("/set_value_cold", HTTP_GET, handleSliderValueCold);
   server.on("/set_value_warm", HTTP_GET, handleSliderValueWarm);
   server.on("/time_on", HTTP_GET, handleTimerOn);
@@ -61,6 +63,15 @@ void loop() {
     }
   }
   server.handleClient();
+}
+
+void handleColorTemperature(){
+  if (server.args() > 0)
+  {
+    int colorTemperature = server.arg("value").toInt();
+    colorTemperatureLed(colorTemperature);
+    Serial.println(colorTemperature);
+  }
 }
 
 void handleTimerOn(){

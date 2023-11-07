@@ -19,6 +19,7 @@ enum LedType {
     ledWOff
 };
 
+void colorTemperatureLed(int value);
 void handleLed(LedType type);
 void sliderLed(LedType type, int value);
 void ledSetup(void);
