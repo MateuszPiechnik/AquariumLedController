@@ -13,6 +13,7 @@ bool isDaySimOn = false;
 int setTime = 0;
 int sunsetTime = 0;
 int sunriseTime=0;
+int previousTime;
 
 void HTTP_handleLed(void);
 void handleSliderValue(void);
@@ -21,7 +22,6 @@ void handleSliderValueWarm(void);
 void handleTimerOn(void);
 void handleTimerOff(void);
 void handleColorTemperature(void);
-void handleDaySimulation(void);
 void handleSunriseTime(void);
 void handleSunsetTime(void);
 
@@ -45,7 +45,6 @@ void setup() {
   server.on("/set_value_warm", HTTP_GET, handleSliderValueWarm);
   server.on("/time_on", HTTP_GET, handleTimerOn);
   server.on("/time_off", HTTP_GET, handleTimerOff);
-
 
   server.begin(); 
 }
@@ -72,33 +71,63 @@ void loop() {
     }
   }
 
-  if(isDaySimOn){
+  if (isDaySimOn)
+  {
     timeClient.update();
     int actualTime = timeClient.getHours() * 100 + timeClient.getMinutes();
-    if(actualTime < sunriseTime || actualTime > sunsetTime){
-      digitalWrite(ledWPin, LOW);
-      digitalWrite(ledCPin, LOW);
-    }
-    else if(actualTime = sunriseTime || actualTime == sunsetTime){
-      digitalWrite(ledWPin, HIGH);
-      digitalWrite(ledCPin, LOW);
-    }
-    else if(actualTime==1200){
-      digitalWrite(ledWPin, LOW);
-      digitalWrite(ledCPin, HIGH);
-    }
-    else if(actualTime==900 || 1500){
-      digitalWrite(ledWPin, HIGH);
-      digitalWrite(ledCPin, HIGH);
+    if (actualTime - previousTime != 0) //aktualizuj dane co minute
+    {
+      if (actualTime < sunriseTime || actualTime > sunsetTime)
+      {
+        Serial.println("ciemnosc");
+        digitalWrite(ledWPin, LOW);
+        digitalWrite(ledCPin, LOW);
+      }
+      else if (actualTime == sunriseTime || actualTime == sunsetTime)
+      {
+        Serial.println("Wschod/zachod");
+        digitalWrite(ledWPin, HIGH);
+        digitalWrite(ledCPin, LOW);
+      }
+      else if (actualTime == 1200)
+      {
+        Serial.println("Poludnie");
+        digitalWrite(ledWPin, LOW);
+        digitalWrite(ledCPin, HIGH);
+      }
+      else if (actualTime > sunriseTime && actualTime < 900)
+      {
+        int brightness = map(actualTime, sunriseTime, 900, 0, 255);
+        digitalWrite(ledWPin, HIGH);
+        analogWrite(ledCPin, brightness);
+      }
+      else if (actualTime > 900 && actualTime < 1200)
+      {
+        int brightness = map(actualTime, 900, 1200, 255, 0);
+        digitalWrite(ledCPin, HIGH);
+        analogWrite(ledWPin, brightness);
+      }
+      else if (actualTime > 1200 && actualTime < 1500)
+      {
+        int brightness = map(actualTime, 1200, 1500, 0, 255);
+        digitalWrite(ledCPin, HIGH);
+        analogWrite(ledWPin, brightness);
+      }
+      else if (actualTime > 1500 && actualTime < sunsetTime)
+      {
+        digitalWrite(ledWPin, HIGH);
+      }
+      else if (actualTime == 900 || actualTime == 1500)
+      {
+        digitalWrite(ledWPin, HIGH);
+        digitalWrite(ledCPin, HIGH);
+      }
+      Serial.println(actualTime);
+      previousTime = actualTime;
     }
   }
 
-
   server.handleClient();
-}
-
-void handleDaySimulation(){
-
 }
 
 void handleSunriseTime(){
@@ -209,6 +238,7 @@ void HTTP_handleLed(void)
     else if (command == "day_sim_on"){
       Serial.println("Jestem");
       isDaySimOn = true;
+      previousTime = 0;
     }
     else if (command == "day_sim_off"){
       isDaySimOn = false;
