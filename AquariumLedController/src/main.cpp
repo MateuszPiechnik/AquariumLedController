@@ -9,7 +9,10 @@ ESP8266WebServer server(80);
 
 bool isTimerOn = false;
 bool turnOn = false;
+bool isDaySimOn = false;
 int setTime = 0;
+int sunsetTime = 0;
+int sunriseTime=0;
 
 void HTTP_handleLed(void);
 void handleSliderValue(void);
@@ -18,6 +21,9 @@ void handleSliderValueWarm(void);
 void handleTimerOn(void);
 void handleTimerOff(void);
 void handleColorTemperature(void);
+void handleDaySimulation(void);
+void handleSunriseTime(void);
+void handleSunsetTime(void);
 
 WiFiUDP ntpUDP;
 NTPClient timeClient(ntpUDP);
@@ -30,6 +36,8 @@ void setup() {
   timeClient.begin();
   timeClient.setTimeOffset(3600);
 
+  server.on("/sunrise_time", HTTP_GET, handleSunriseTime);
+  server.on("/sunset_time", HTTP_GET, handleSunsetTime);
   server.on("/led_control", HTTP_POST, HTTP_handleLed);
   server.on("/set_value", HTTP_GET, handleSliderValue);
   server.on("/color_temperature", HTTP_GET, handleColorTemperature);
@@ -37,6 +45,7 @@ void setup() {
   server.on("/set_value_warm", HTTP_GET, handleSliderValueWarm);
   server.on("/time_on", HTTP_GET, handleTimerOn);
   server.on("/time_off", HTTP_GET, handleTimerOff);
+
 
   server.begin(); 
 }
@@ -62,8 +71,52 @@ void loop() {
       isTimerOn = false;
     }
   }
+
+  if(isDaySimOn){
+    timeClient.update();
+    int actualTime = timeClient.getHours() * 100 + timeClient.getMinutes();
+    if(actualTime < sunriseTime || actualTime > sunsetTime){
+      digitalWrite(ledWPin, LOW);
+      digitalWrite(ledCPin, LOW);
+    }
+    else if(actualTime = sunriseTime || actualTime == sunsetTime){
+      digitalWrite(ledWPin, HIGH);
+      digitalWrite(ledCPin, LOW);
+    }
+    else if(actualTime==1200){
+      digitalWrite(ledWPin, LOW);
+      digitalWrite(ledCPin, HIGH);
+    }
+    else if(actualTime==900 || 1500){
+      digitalWrite(ledWPin, HIGH);
+      digitalWrite(ledCPin, HIGH);
+    }
+  }
+
+
   server.handleClient();
 }
+
+void handleDaySimulation(){
+
+}
+
+void handleSunriseTime(){
+  if (server.args() > 0){
+    Serial.println("wschod");
+    sunriseTime = server.arg("value").toInt();
+    Serial.println(sunriseTime);
+  }
+}
+
+void handleSunsetTime(){
+  if (server.args() > 0){
+    Serial.println("Zachod");
+    sunsetTime = server.arg("value").toInt();
+    Serial.println(sunsetTime);
+  }
+}
+
 
 void handleColorTemperature(){
   if (server.args() > 0)
@@ -152,6 +205,13 @@ void HTTP_handleLed(void)
     else if (command == "reset_time"){
       isTimerOn = false;
       Serial.println("reset");
+    }
+    else if (command == "day_sim_on"){
+      Serial.println("Jestem");
+      isDaySimOn = true;
+    }
+    else if (command == "day_sim_off"){
+      isDaySimOn = false;
     }
     else
     {
