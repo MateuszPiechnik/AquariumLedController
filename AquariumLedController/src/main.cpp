@@ -9,8 +9,12 @@ ESP8266WebServer server(80);
 
 bool isTimerOn = false;
 bool turnOn = false;
+bool turnOff = false;
 bool isDaySimOn = false;
-int setTime = 0;
+int setTimeOn = 0;
+int setTimeOff =0;
+int timerCT = 0;
+int timerBrightness=0;
 int sunsetTime = 0;
 int sunriseTime=0;
 int previousTime;
@@ -54,19 +58,21 @@ void loop() {
   if(isTimerOn){
     timeClient.update();
     int actualTime = timeClient.getHours() * 100 + timeClient.getMinutes();
-    if (actualTime == setTime && turnOn == true)
+    if (actualTime == setTimeOn && turnOn == true)
     {
-      digitalWrite(ledPin, HIGH);
-      digitalWrite(ledCPin, HIGH);
-      digitalWrite(ledWPin, HIGH);
-      isTimerOn = false;
+      colorTemperatureLed(timerCT, timerBrightness);
+      Serial.println(timerCT);
+      Serial.println(timerBrightness);
       turnOn = false;
     }
-    else if (actualTime == setTime && turnOn == false)
+    else if (actualTime == setTimeOff && turnOff == true)
     {
       digitalWrite(ledPin, LOW);
       digitalWrite(ledWPin, LOW);
       digitalWrite(ledCPin, LOW);
+      turnOff = false;
+    }
+    else if (turnOn == false && turnOff == false){
       isTimerOn = false;
     }
   }
@@ -115,7 +121,9 @@ void loop() {
       }
       else if (actualTime > 1500 && actualTime < sunsetTime)
       {
+        int brightness = map (actualTime,1500, sunsetTime, 255,0);
         digitalWrite(ledWPin, HIGH);
+        analogWrite(ledCPin, brightness);
       }
       else if (actualTime == 900 || actualTime == 1500)
       {
@@ -150,16 +158,20 @@ void handleSunsetTime(){
 void handleColorTemperature(){
   if (server.args() > 0)
   {
-    int colorTemperature = server.arg("value").toInt();
-    colorTemperatureLed(colorTemperature);
+    int colorTemperature = server.arg(0).toInt();
+    int percentage = server.arg(1).toInt();
+    colorTemperatureLed(colorTemperature, percentage);
+    Serial.println(percentage);
     Serial.println(colorTemperature);
   }
 }
 
 void handleTimerOn(){
   if(server.args()>0){
-    setTime = server.arg("value").toInt();
-    Serial.println(setTime);
+    setTimeOn = server.arg(0).toInt();
+    timerCT = server.arg(1).toInt();
+    timerBrightness = server.arg(2).toInt();
+    Serial.println(setTimeOn);
     turnOn = true;
     isTimerOn = true;
   }
@@ -168,9 +180,9 @@ void handleTimerOn(){
 void handleTimerOff(){
   if (server.args() > 0)
   {
-    setTime = server.arg("value").toInt();
-    Serial.println(setTime);
-    turnOn = false;
+    setTimeOff = server.arg("value").toInt();
+    Serial.println(setTimeOff);
+    turnOff = true;
     isTimerOn = true;
   }
 }
@@ -178,6 +190,7 @@ void handleTimerOff(){
 void handleSliderValue(){
   if(server.args()>0){
     String value = server.arg("value");
+    Serial.println(value);
     int intValue = value.toInt();
     Serial.println(value);
     sliderLed(LedType::allLed, intValue);
@@ -187,6 +200,7 @@ void handleSliderValue(){
 void handleSliderValueCold(){
   if(server.args()>0){
     String value = server.arg("value");
+    Serial.println(value);
     int intValue = value.toInt();
     Serial.println(value);
     sliderLed(LedType::LedC, intValue);
@@ -196,6 +210,7 @@ void handleSliderValueCold(){
   void handleSliderValueWarm(){
   if(server.args()>0){
     String value = server.arg("value");
+    Serial.println(value);
     int intValue = value.toInt();
     Serial.println(value);
     sliderLed(LedType::LedW, intValue);

@@ -66,60 +66,61 @@ void sliderLed(LedType type, int value){
     }
 }
 
-void colorTemperatureLed(int value){
+void colorTemperatureLed(int value, int percentage){
     switch (value)
     {
         case(2700):
         {
-            analogWrite(ledWPin, 255);
+            analogWrite(ledWPin, 255 * percentage/100);
             analogWrite(ledCPin, 0);
             break;
         }
         case(3000):
         {
-            analogWrite(ledWPin, 255);
-            analogWrite(ledCPin, 50);
+            analogWrite(ledWPin, 255 * percentage/100);
+            analogWrite(ledCPin, 50 * percentage/100);
             break;
         }
         case(3500):
         {
-            analogWrite(ledWPin, 255);
-            analogWrite(ledCPin, 140);
+            analogWrite(ledWPin, 255 * percentage/100);
+            analogWrite(ledCPin, 140 * percentage/100);
             break;
         }
         case(4000):
         {
-            analogWrite(ledWPin, 255);
-            analogWrite(ledCPin, 255);
+            analogWrite(ledWPin, 255 * percentage/100);
+            analogWrite(ledCPin, 255 * percentage/100);
             break;
         }
         case(4500):
         {
-            analogWrite(ledWPin, 140);
-            analogWrite(ledCPin, 255);
+            analogWrite(ledWPin, 140 * percentage/100);
+            analogWrite(ledCPin, 255 * percentage/100);
             break;
         }
         case(5000):
         {
-            analogWrite(ledWPin, 89);
-            analogWrite(ledCPin, 255);
+            analogWrite(ledWPin, 89 * percentage/100);
+            analogWrite(ledCPin, 255 * percentage/100);
             break;
         }
         case(5500):
         {
-            analogWrite(ledWPin, 48);
-            analogWrite(ledCPin, 255);
+            analogWrite(ledWPin, 48 * percentage/100);
+            analogWrite(ledCPin, 255 * percentage/100);
             break;
         }
         case(6000):
         {
-            analogWrite(ledWPin, 20);
-            analogWrite(ledCPin, 255);break;
+            analogWrite(ledWPin, 20 * percentage/100);
+            analogWrite(ledCPin, 255 * percentage/100);
+            break;
         }
         case(6500):
         {
             analogWrite(ledWPin, 0);
-            analogWrite(ledCPin, 255);
+            analogWrite(ledCPin, 255 * percentage/100);
             break;
         }
         default:
