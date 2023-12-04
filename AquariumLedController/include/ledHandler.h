@@ -1,11 +1,6 @@
 #pragma once
 
 #include <Arduino.h>
-#include <string>
-
-const int ledPin = D4;
-const int ledCPin = D3;
-const int ledWPin = D2;
 
 enum LedType {
     allLed,
@@ -19,7 +14,16 @@ enum LedType {
     ledWOff
 };
 
-void colorTemperatureLed(int value, int percentage);
-void handleLed(LedType type);
-void sliderLed(LedType type, int value);
-void ledSetup(void);
+class LedHandler{
+public:
+    LedHandler(int pinLed, int pinLedC, int pinLedW);
+    void ledSetup();
+    void colorTemperatureLed(int value, int percentage);
+    void handleLed(LedType type);
+    void sliderLed(LedType type, int value);
+
+private:
+    int ledPin;
+    int ledCPin;
+    int ledWPin;
+};

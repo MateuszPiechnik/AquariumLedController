@@ -7,6 +7,9 @@
 
 ESP8266WebServer server(80);
 
+const int ledCPin = D3;
+const int ledWPin = D2;
+
 bool isTimerOn = false;
 bool turnOn = false;
 bool turnOff = false;
@@ -31,9 +34,10 @@ void handleSunsetTime(void);
 
 WiFiUDP ntpUDP;
 NTPClient timeClient(ntpUDP);
+LedHandler ledHandler(D4, ledCPin, ledWPin);
 
 void setup() {
-  ledSetup();
+  ledHandler.ledSetup();
   Serial.begin(9600);
   wifiSetup();
 
@@ -60,16 +64,12 @@ void loop() {
     int actualTime = timeClient.getHours() * 100 + timeClient.getMinutes();
     if (actualTime == setTimeOn && turnOn == true)
     {
-      colorTemperatureLed(timerCT, timerBrightness);
-      Serial.println(timerCT);
-      Serial.println(timerBrightness);
+      ledHandler.colorTemperatureLed(timerCT, timerBrightness);
       turnOn = false;
     }
     else if (actualTime == setTimeOff && turnOff == true)
     {
-      digitalWrite(ledPin, LOW);
-      digitalWrite(ledWPin, LOW);
-      digitalWrite(ledCPin, LOW);
+      ledHandler.handleLed(LedType::ledOff);
       turnOff = false;
     }
     else if (turnOn == false && turnOff == false){
@@ -85,19 +85,16 @@ void loop() {
     {
       if (actualTime < sunriseTime || actualTime > sunsetTime)
       {
-        Serial.println("ciemnosc");
         digitalWrite(ledWPin, LOW);
         digitalWrite(ledCPin, LOW);
       }
       else if (actualTime == sunriseTime || actualTime == sunsetTime)
       {
-        Serial.println("Wschod/zachod");
         digitalWrite(ledWPin, HIGH);
         digitalWrite(ledCPin, LOW);
       }
       else if (actualTime == 1200)
       {
-        Serial.println("Poludnie");
         digitalWrite(ledWPin, LOW);
         digitalWrite(ledCPin, HIGH);
       }
@@ -140,7 +137,6 @@ void loop() {
 
 void handleSunriseTime(){
   if (server.args() > 0){
-    Serial.println("wschod");
     sunriseTime = server.arg("value").toInt();
     Serial.println(sunriseTime);
   }
@@ -148,7 +144,6 @@ void handleSunriseTime(){
 
 void handleSunsetTime(){
   if (server.args() > 0){
-    Serial.println("Zachod");
     sunsetTime = server.arg("value").toInt();
     Serial.println(sunsetTime);
   }
@@ -160,9 +155,7 @@ void handleColorTemperature(){
   {
     int colorTemperature = server.arg(0).toInt();
     int percentage = server.arg(1).toInt();
-    colorTemperatureLed(colorTemperature, percentage);
-    Serial.println(percentage);
-    Serial.println(colorTemperature);
+    ledHandler.colorTemperatureLed(colorTemperature, percentage);
   }
 }
 
@@ -171,7 +164,6 @@ void handleTimerOn(){
     setTimeOn = server.arg(0).toInt();
     timerCT = server.arg(1).toInt();
     timerBrightness = server.arg(2).toInt();
-    Serial.println(setTimeOn);
     turnOn = true;
     isTimerOn = true;
   }
@@ -181,7 +173,6 @@ void handleTimerOff(){
   if (server.args() > 0)
   {
     setTimeOff = server.arg("value").toInt();
-    Serial.println(setTimeOff);
     turnOff = true;
     isTimerOn = true;
   }
@@ -190,30 +181,24 @@ void handleTimerOff(){
 void handleSliderValue(){
   if(server.args()>0){
     String value = server.arg("value");
-    Serial.println(value);
     int intValue = value.toInt();
-    Serial.println(value);
-    sliderLed(LedType::allLed, intValue);
+    ledHandler.sliderLed(LedType::allLed, intValue);
   }
 }
 
 void handleSliderValueCold(){
   if(server.args()>0){
     String value = server.arg("value");
-    Serial.println(value);
     int intValue = value.toInt();
-    Serial.println(value);
-    sliderLed(LedType::LedC, intValue);
+    ledHandler.sliderLed(LedType::LedC, intValue);
   }
 }
 
   void handleSliderValueWarm(){
   if(server.args()>0){
     String value = server.arg("value");
-    Serial.println(value);
     int intValue = value.toInt();
-    Serial.println(value);
-    sliderLed(LedType::LedW, intValue);
+    ledHandler.sliderLed(LedType::LedW, intValue);
   }
 }
 
@@ -224,34 +209,32 @@ void HTTP_handleLed(void)
     String command = server.arg("command");
     if (command == "led_on")
     {
-      handleLed(LedType::ledOn);
+      ledHandler.handleLed(LedType::ledOn);
     }
     else if (command == "led_off")
     {
-      handleLed(LedType::ledOff);
+      ledHandler.handleLed(LedType::ledOff);
     }
     else if (command == "cold_led_off")
     {
-      handleLed(LedType::ledCOff);
+      ledHandler.handleLed(LedType::ledCOff);
     }
     else if (command == "cold_led_on")
     {
-      handleLed(LedType::ledCOn);
+      ledHandler.handleLed(LedType::ledCOn);
     }
     else if (command == "warm_led_off")
     {
-      handleLed(LedType::ledWOff);
+      ledHandler.handleLed(LedType::ledWOff);
     }
     else if (command == "warm_led_on")
     {
-      handleLed(LedType::ledWOn);
+      ledHandler.handleLed(LedType::ledWOn);
     }
     else if (command == "reset_time"){
       isTimerOn = false;
-      Serial.println("reset");
     }
     else if (command == "day_sim_on"){
-      Serial.println("Jestem");
       isDaySimOn = true;
       previousTime = 0;
     }
@@ -260,11 +243,11 @@ void HTTP_handleLed(void)
     }
     else
     {
-      server.send(400, "text/plain", "Nieznana komenda");
+      server.send(400, "text/plain", "Unknown command");
     }
   }
   else
   {
-    server.send(400, "text/plain", "Brak komendy");
+    server.send(400, "text/plain", "No command");
   }
 }

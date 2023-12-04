@@ -112,5 +112,6 @@
     "string_view": "cpp",
     "initializer_list": "cpp",
     "ranges": "cpp"
-  }
+  },
+  "C_Cpp.errorSquiggles": "disabled"
 }
