@@ -11,6 +11,59 @@ void LedHandler::ledSetup(){
     digitalWrite(ledWPin, LOW); 
 }
 
+void LedHandler::daySimulation(int actualTime, int previousTime, int sunriseTime, int sunsetTime)
+{
+    if (actualTime - previousTime != 0) // aktualizuj dane co minute
+    {
+        if (actualTime < sunriseTime || actualTime > sunsetTime)
+        {
+            digitalWrite(ledWPin, LOW);
+            digitalWrite(ledCPin, LOW);
+        }
+        else if (actualTime == sunriseTime || actualTime == sunsetTime)
+        {
+            digitalWrite(ledWPin, HIGH);
+            digitalWrite(ledCPin, LOW);
+        }
+        else if (actualTime == 1200)
+        {
+            digitalWrite(ledWPin, LOW);
+            digitalWrite(ledCPin, HIGH);
+        }
+        else if (actualTime > sunriseTime && actualTime < 900)
+        {
+            int brightness = map(actualTime, sunriseTime, 900, 0, 255);
+            digitalWrite(ledWPin, HIGH);
+            analogWrite(ledCPin, brightness);
+        }
+        else if (actualTime > 900 && actualTime < 1200)
+        {
+            int brightness = map(actualTime, 900, 1200, 255, 0);
+            digitalWrite(ledCPin, HIGH);
+            analogWrite(ledWPin, brightness);
+        }
+        else if (actualTime > 1200 && actualTime < 1500)
+        {
+            int brightness = map(actualTime, 1200, 1500, 0, 255);
+            digitalWrite(ledCPin, HIGH);
+            analogWrite(ledWPin, brightness);
+        }
+        else if (actualTime > 1500 && actualTime < sunsetTime)
+        {
+            int brightness = map(actualTime, 1500, sunsetTime, 255, 0);
+            digitalWrite(ledWPin, HIGH);
+            analogWrite(ledCPin, brightness);
+        }
+        else if (actualTime == 900 || actualTime == 1500)
+        {
+            digitalWrite(ledWPin, HIGH);
+            digitalWrite(ledCPin, HIGH);
+        }
+        Serial.println(actualTime);
+        previousTime = actualTime;
+    }
+}
+
 void LedHandler::colorTemperatureLed(int value, int percentage){
     switch (value)
     {
