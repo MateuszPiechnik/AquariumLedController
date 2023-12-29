@@ -11,55 +11,101 @@ void LedHandler::ledSetup(){
     digitalWrite(ledWPin, LOW); 
 }
 
-void LedHandler::daySimulation(int actualTime, int previousTime, int sunriseTime, int sunsetTime)
+void LedHandler::daySimulation(int actualTime, int sunriseTime, int sunsetTime)
 {
     if (actualTime - previousTime != 0) // aktualizuj dane co minute
     {
+        Serial.print("Aktualna godzina: ");
+        Serial.println(actualTime);
         if (actualTime < sunriseTime || actualTime > sunsetTime)
         {
             digitalWrite(ledWPin, LOW);
             digitalWrite(ledCPin, LOW);
+            Serial.println("Diody wyłączone - panuej zmrok");
         }
         else if (actualTime == sunriseTime || actualTime == sunsetTime)
         {
-            digitalWrite(ledWPin, HIGH);
+            analogWrite(ledWPin, 1);
             digitalWrite(ledCPin, LOW);
+            Serial.println("Wartość wypełnienia diody ciepłej : 1");
+            Serial.println("Wartość wypełnienia diody zimnej : 0");
         }
         else if (actualTime == 1200)
         {
             digitalWrite(ledWPin, LOW);
             digitalWrite(ledCPin, HIGH);
+            Serial.println("Wartość wypełnienia diody ciepłej : 0");
+            Serial.println("Wartość wypełnienia diody zimnej : 255");
         }
-        else if (actualTime > sunriseTime && actualTime < 900)
+        else if (actualTime > sunriseTime && actualTime < 800)
         {
-            int brightness = map(actualTime, sunriseTime, 900, 0, 255);
-            digitalWrite(ledWPin, HIGH);
+            int brightness = map(actualTime, sunriseTime, 800, 1, 255);
+            analogWrite(ledWPin, brightness);
+            digitalWrite(ledCPin, LOW);
+            Serial.print("Wartość wypełnienia diody ciepłej: ");
+            Serial.println(brightness);
+            Serial.println("Wartość wypełnienia diody zimnej: 0");
+        }
+        else if (actualTime > 800 && actualTime < 900)
+        {
+            int brightness = map(actualTime, 800, 900, 0, 127);
+            int brightnessW = map(actualTime, 800, 900, 255, 127);
+            analogWrite(ledWPin, brightnessW);
             analogWrite(ledCPin, brightness);
+            Serial.print("Wartość wypełnienia diody ciepłej: ");
+            Serial.println(brightnessW);
+            Serial.print("Wartość wypełnienia diody zimnej: ");
+            Serial.println(brightness);
         }
         else if (actualTime > 900 && actualTime < 1200)
         {
-            int brightness = map(actualTime, 900, 1200, 255, 0);
-            digitalWrite(ledCPin, HIGH);
+            int brightness = map(actualTime, 900, 1200, 127, 0);
+            int brightnessC = map(actualTime, 900, 1200, 127, 255);
+            analogWrite(ledCPin, brightnessC);
             analogWrite(ledWPin, brightness);
+            Serial.print("Wartosc wypelnienia diody cieplej: ");
+            Serial.println(brightness);
+            Serial.print("Wartosc wypelnienia diody zimnej:");
+            Serial.println(brightnessC);
         }
-        else if (actualTime > 1200 && actualTime < 1500)
+        else if (actualTime > 1200 && actualTime < 1400)
         {
-            int brightness = map(actualTime, 1200, 1500, 0, 255);
-            digitalWrite(ledCPin, HIGH);
+            int brightness = map(actualTime, 1200, 1500, 0, 127);
+            int brightnessC = map(actualTime, 1200, 1500, 255, 127);
+            analogWrite(ledCPin, brightnessC);
             analogWrite(ledWPin, brightness);
+            Serial.print("Wartosc wypelnienia diody cieplej: ");
+            Serial.println(brightness);
+            Serial.print("Wartosc wypelnienia diody zimnej:");
+            Serial.println(brightnessC);
+        }
+        else if (actualTime > 1400 && actualTime < 1500)
+        {
+            int brightness = map(actualTime, 1400, 1500, 127, 255);
+            int brightnessC = map(actualTime, 1400, 1500, 127, 0);
+            analogWrite(ledCPin, brightnessC);
+            analogWrite(ledWPin, brightness);
+            Serial.print("Wartość wypełnienia diody ciepłej:");
+            Serial.println(brightness);
+            Serial.print("Wartość wypełnienia diody zimnej:");
+            Serial.println(brightnessC);
         }
         else if (actualTime > 1500 && actualTime < sunsetTime)
         {
             int brightness = map(actualTime, 1500, sunsetTime, 255, 0);
-            digitalWrite(ledWPin, HIGH);
-            analogWrite(ledCPin, brightness);
+            analogWrite(ledWPin, brightness);
+            digitalWrite(ledCPin, LOW);
+            Serial.print("Wartość wypełnienia diody ciepłej: ");
+            Serial.println(brightness);
+            Serial.println("Wartość wypełnienia diody zimnej: 0");
         }
         else if (actualTime == 900 || actualTime == 1500)
         {
-            digitalWrite(ledWPin, HIGH);
-            digitalWrite(ledCPin, HIGH);
+            analogWrite(ledWPin, 127);
+            digitalWrite(ledCPin, 127);
+            Serial.println("Wartość wypełnienia diody ciepłej: 127");
+            Serial.println("Wartość wypełnienia diody zimnej: 127");
         }
-        Serial.println(actualTime);
         previousTime = actualTime;
     }
 }

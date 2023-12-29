@@ -21,10 +21,11 @@ public:
     void colorTemperatureLed(int value, int percentage);
     void handleLed(LedType type);
     void sliderLed(LedType type, int value);
-    void daySimulation(int actualTime, int previousTime, int sunriseTime, int sunsetTime);
+    void daySimulation(int actualTime, int sunriseTime, int sunsetTime);
 
 private:
     int ledPin;
     int ledCPin;
     int ledWPin;
+    int previousTime;
 };

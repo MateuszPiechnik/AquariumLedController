@@ -23,7 +23,6 @@ int timerCT = 0;
 int timerBrightness=0;
 int sunsetTime = 0;
 int sunriseTime=0;
-int previousTime;
 
 void HTTP_handleLed(void);
 void handleSliderValue(void);
@@ -70,22 +69,23 @@ void loop() {
     {
       ledHandler.colorTemperatureLed(timerCT, timerBrightness);
       turnOn = false;
+      Serial.println("Osiagnieto wprowadzona godzine, ustawiono wybrane parametry");
     }
     else if (actualTime == setTimeOff && turnOff == true)
     {
       ledHandler.handleLed(LedType::ledOff);
       turnOff = false;
+      Serial.println("Osiagnieto wprowadzona godzine, wylaczono diody");
     }
     else if (turnOn == false && turnOff == false){
       isTimerOn = false;
     }
   }
-
   if (isDaySimOn)
   {
     timeClient.update();
     int actualTime = timeClient.getHours() * 100 + timeClient.getMinutes();
-    ledHandler.daySimulation(actualTime, previousTime, sunriseTime, sunsetTime);
+    ledHandler.daySimulation(actualTime, sunriseTime, sunsetTime);
   }
 
   server.handleClient();
@@ -96,6 +96,7 @@ void handleSunriseTime()
   if (server.args() > 0)
   {
     sunriseTime = server.arg("value").toInt();
+    Serial.print("Wschód słońca: ");
     Serial.println(sunriseTime);
   }
 }
@@ -105,6 +106,7 @@ void handleSunsetTime()
   if (server.args() > 0)
   {
     sunsetTime = server.arg("value").toInt();
+    Serial.print("Zachod słońca: ");
     Serial.println(sunsetTime);
   }
 }
@@ -115,6 +117,11 @@ void handleColorTemperature()
   {
     int colorTemperature = server.arg(0).toInt();
     int percentage = server.arg(1).toInt();
+    Serial.print("Wybrana temperatura barwowa: ");
+    Serial.println(colorTemperature);
+    Serial.print("Wybrana intensywnosc światła : ");
+    Serial.print(percentage);
+    Serial.println("%");
     ledHandler.colorTemperatureLed(colorTemperature, percentage);
   }
 }
@@ -128,6 +135,13 @@ void handleTimerOn()
     timerBrightness = server.arg(2).toInt();
     turnOn = true;
     isTimerOn = true;
+    Serial.print("Wlączono timer z ustawieniami na godzine: ");
+    Serial.println(setTimeOn);
+    Serial.print("Wybrana temperatura barwowa: ");
+    Serial.println(timerCT);
+    Serial.print("Wybrana intensywnosc swiatla: ");
+    Serial.print(timerBrightness);
+    Serial.println(" %");
   }
 }
 
@@ -138,6 +152,8 @@ void handleTimerOff()
     setTimeOff = server.arg("value").toInt();
     turnOff = true;
     isTimerOn = true;
+    Serial.print("Obecne ustawienia zostaną wyłączone o:");
+    Serial.println(setTimeOff);
   }
 }
 
@@ -146,9 +162,10 @@ void handleSliderValue()
   if (server.args() > 0)
   {
     String value = server.arg("value");
-    Serial.println("slider");
     int intValue = value.toInt();
     ledHandler.sliderLed(LedType::allLed, intValue);
+    Serial.print("Ustawiono intensywność obu diod na :");
+    Serial.println((intValue/255 * 100));
   }
 }
 
@@ -159,6 +176,9 @@ void handleSliderValueCold()
     String value = server.arg("value");
     int intValue = value.toInt();
     ledHandler.sliderLed(LedType::LedC, intValue);
+    Serial.print("Ustawiono intensywność diody zimnej na: ");
+    Serial.print((intValue*100)/255);
+    Serial.println("%");
   }
 }
 
@@ -167,9 +187,11 @@ void handleSliderValueWarm()
   if (server.args() > 0)
   {
     String value = server.arg("value");
-    Serial.println("sliderw");
     int intValue = value.toInt();
     ledHandler.sliderLed(LedType::LedW, intValue);
+    Serial.print("Ustawiono intensywnosc diody cieplej na: ");
+    Serial.print((intValue*100)/255);
+    Serial.println("%");
   }
 }
 
@@ -180,43 +202,47 @@ void HTTP_handleLed(void)
     String command = server.arg("command");
     if (command == "led_on")
     {
-      Serial.println("all");
+      Serial.println("Włączono wszystkie diody");
       ledHandler.handleLed(LedType::ledOn);
     }
     else if (command == "led_off")
     {
+      Serial.println("Wyłączono wszystkie diody");
       ledHandler.handleLed(LedType::ledOff);
     }
     else if (command == "cold_led_off")
     {
+      Serial.println("Wyłączono diody zimne");
       ledHandler.handleLed(LedType::ledCOff);
     }
     else if (command == "cold_led_on")
     {
-      Serial.println("Cold");
+      Serial.println("Włączono diody zimne");
       ledHandler.handleLed(LedType::ledCOn);
     }
     else if (command == "warm_led_off")
     {
+      Serial.println("Wyłączono diody ciepłe");
       ledHandler.handleLed(LedType::ledWOff);
     }
     else if (command == "warm_led_on")
     {
-      Serial.println("Warm");
+      Serial.println("Włączono diody ciepłe");
       ledHandler.handleLed(LedType::ledWOn);
     }
     else if (command == "reset_time")
     {
+      Serial.println("Zresetowano timer");
       isTimerOn = false;
     }
     else if (command == "day_sim_on")
     {
-      Serial.println("simm");
+      Serial.println("Uruchomiono tryb symulacji dnia");
       isDaySimOn = true;
-      previousTime = 0;
     }
     else if (command == "day_sim_off")
     {
+      Serial.println("Wyłączono tryb symulacji dnia");
       isDaySimOn = false;
     }
     else
